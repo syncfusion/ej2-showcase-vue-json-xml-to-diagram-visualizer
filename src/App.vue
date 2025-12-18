@@ -47,6 +47,7 @@
           :tool="diagramTool"
           :getNodeDefaults="getDefaultNodeConfiguration"
           :getConnectorDefaults="getDefaultConnectorConfiguration"
+          :expandStateChange="handleExpandStateChange"
           @click="handleDiagramNodeClick"
         />
 
@@ -186,6 +187,7 @@ const isEditorContentValid = ref(true)
 const isLoadingSpinnerVisible = ref(false)
 const isExportDialogOpen = ref(false)
 const isNodeDetailsDialogOpen = ref(false)
+const hamburgerMenuRef = ref();
 const selectedNodeDetailsData = ref({
   content: "",
   path: "",
@@ -372,7 +374,7 @@ const processEditorContent = (textContent: string, editorType: EditorType) => {
 const refreshDiagramLayout = () => {
   if (diagramComponentRef.value) {
     diagramComponentRef.value.ej2Instances.refresh();
-    diagramComponentRef.value.ej2Instances.fitToPage({ canZoomIn: true })
+    diagramComponentRef.value.ej2Instances.fitToPage({ mode: "Page", region: "Content", canZoomIn: true })
   }
 }
 
@@ -385,6 +387,8 @@ const handleEditorContentChange = (newEditorValue: string | undefined) => {
   const updatedContent = newEditorValue || ""
   editorTextContent.value = updatedContent
   parseAndProcessEditorContent(updatedContent, selectedEditorType.value)
+  isEntireGraphCollapsed.value = false;
+  hamburgerMenuRef.value?.updateCollapseMenuText(false);
 }
 
 // Handle switching between JSON and XML editor types with content conversion
@@ -398,6 +402,8 @@ const handleEditorTypeSwitch = (newEditorType: EditorType) => {
     console.error("Conversion error:", error)
     isEditorContentValid.value = false
   }
+  isEntireGraphCollapsed.value = false;
+  hamburgerMenuRef.value?.updateCollapseMenuText(false);
 }
 
 // Convert content between different editor types (JSON <-> XML)
@@ -998,6 +1004,21 @@ const getDefaultConnectorConfiguration = (connectorModel: ConnectorModel): Conne
 
   return connectorModel
 }
+
+	
+const handleExpandStateChange = (args) => {
+    const node = args.element;
+    if (!node || typeof node !== 'object') {
+        return;
+    }
+    // Check if it's a root node (no incoming edges)
+    const isRootNode = !node.inEdges || node.inEdges.length === 0;
+    if (isRootNode) {
+        isEntireGraphCollapsed.value = !node.isExpanded;
+        hamburgerMenuRef.value?.updateCollapseMenuText(!node.isExpanded);
+    }
+};
+
 
 // =============================================================================
 // WATCHERS

@@ -1,6 +1,7 @@
 <template>
   <div class="hamburger-menu">
     <ejs-dropdownbutton
+      ref="hamburgerDropdownButton"
       :iconCss="MENU_ICONS.HAMBURGER"
       :cssClass="MENU_STYLES.HIDE_CARET"
       :items="menuItems"
@@ -13,7 +14,7 @@
 import { ref, computed, watch } from 'vue'
 import { DropDownButtonComponent as EjsDropdownbutton } from '@syncfusion/ej2-vue-splitbuttons'
 import type { MenuEventArgs } from '@syncfusion/ej2-splitbuttons'
-
+const hamburgerDropdownButton = ref(null);
 // Type definitions
 interface HamburgerMenuProps {
   isGraphCollapsed: boolean
@@ -81,6 +82,15 @@ const menuItems = computed(() => {
       : item
   )
 })
+function updateCollapseMenuText(isGraphCollapsed) {
+  const collapseMenuItem = baseMenuItems.find(menuItem => menuItem.id === 'collapseGraph');
+  if (collapseMenuItem) {
+    collapseMenuItem.text = isGraphCollapsed ? 'Expand Graph' : 'Collapse Graph';
+    collapseMenuItem.iconCss = isGraphCollapsed ? 'e-icons e-expand' : 'e-icons e-collapse-2';
+    hamburgerDropdownButton.items = baseMenuItems;
+    hamburgerDropdownButton.dataBind();
+  }
+}
 
 // Handle menu item selection
 const handleMenuSelect = (args: MenuEventArgs) => {
@@ -100,4 +110,7 @@ const handleMenuSelect = (args: MenuEventArgs) => {
       console.warn(`Unknown menu item selected: ${menuId}`)
   }
 }
+defineExpose({
+  updateCollapseMenuText
+});
 </script>
